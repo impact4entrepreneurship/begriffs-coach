@@ -27,6 +27,10 @@ svg{width:100%;height:auto;display:block}
 .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
 .pill{background:var(--bg);border-radius:12px;padding:12px 14px;font-size:.95rem}
 .pill b{color:var(--plum)}
+.pill{direction:ltr}
+.hebi{font-family:'Frank Ruhl Libre',serif;unicode-bidi:isolate;direction:rtl;font-size:1.1em}
+.row.zwei{grid-template-columns:repeat(2,1fr)}
+@media(max-width:640px){.row.zwei{grid-template-columns:1fr}}
 .merk{text-align:center;font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--plum);padding:8px 0}
 .hinweis{font-size:.9rem;color:var(--muted);background:var(--soft);border-radius:12px;padding:12px 14px;margin-bottom:20px}
 .fehler{background:#fde7ee;color:#7a1237;border-radius:12px;padding:12px 14px;margin-bottom:18px}
@@ -96,7 +100,7 @@ function buchstabenGrafik(wort, rollen) {
     svg.appendChild(s("text", { x, y: 190, "text-anchor": "middle", class: "heb", "font-size": fs, fill: "var(--plum)" }, c));
     svg.appendChild(s("text", { x, y: 241, "text-anchor": "middle", "font-family": "Inter", "font-size": lf, "font-weight": 600, fill: "var(--ink)" }, `${BUCH[c][0]} · ${BUCH[c][1]}`));
     const r = (rollen || [])[i];
-    if (r) svg.appendChild(s("text", { x, y: 264, "text-anchor": "middle", "font-family": "Inter", "font-size": lf - 1, fill: "var(--muted)" }, kuerze(r, Math.floor(slot / (lf * 0.55)))));
+    if (r) svg.appendChild(s("text", { x, y: 264, "text-anchor": "middle", "font-family": "Inter", "font-size": lf - 1, fill: "var(--muted)" }, kuerze(r, Math.max(6, Math.floor(slot / (lf * 0.6))))));
   });
   return svg;
 }
@@ -107,7 +111,7 @@ function kontrastGrafik(k) {
   const seiten = [[k.links || {}, 220, "var(--plum)"], [k.rechts || {}, 580, "var(--rose)"]];
   seiten.forEach(([d, x, farbe]) => {
     const w = wert(d.hebraeisch);
-    svg.appendChild(s("text", { x, y: 120, "text-anchor": "middle", class: "heb", "font-size": 96, fill: farbe }, buchstaben(d.hebraeisch).join("")));
+    svg.appendChild(s("text", { x, y: 120, "text-anchor": "middle", class: "heb", "font-size": Math.max(36, Math.min(96, Math.floor(320 / (Math.max(1, buchstaben(d.hebraeisch).length) * 0.62)))), fill: farbe }, buchstaben(d.hebraeisch).join(" ").replace(/ /g, buchstaben(d.hebraeisch).length > 7 ? "" : "")));
     svg.appendChild(s("rect", { x: x - 130, y: 140, width: 260, height: 12, rx: 6, fill: farbe }));
     svg.appendChild(s("text", { x, y: 182, "text-anchor": "middle", "font-family": "Inter", "font-size": 18, "font-weight": 600, fill: farbe }, kuerze(`${d.label || ""}${w ? " · " + w : ""}`, 34)));
     umbruch(d.text, 36).forEach((z, i) => svg.appendChild(s("text", { x, y: 208 + i * 20, "text-anchor": "middle", "font-family": "Inter", "font-size": 15, fill: "var(--ink)" }, z)));
@@ -117,7 +121,15 @@ function kontrastGrafik(k) {
   return svg;
 }
 
-function pille(kopf, text) { const p = el("div", "pill"); p.appendChild(el("b", "", kopf)); p.appendChild(document.createElement("br")); p.appendChild(document.createTextNode(text || "")); return p; }
+// Hebräische Wortgruppen in eigene Blöcke setzen, damit Zahlen und Text nicht durcheinandergeraten
+function heb(parent, text) {
+  String(text || "").split(/([\u0590-\u05FF]+(?:[ \u00A0][\u0590-\u05FF]+)*)/).forEach((t) => {
+    if (!t) return;
+    if (/[\u0590-\u05FF]/.test(t)) parent.appendChild(el("span", "hebi", t)); else parent.appendChild(document.createTextNode(t));
+  });
+  return parent;
+}
+function pille(kopf, text) { const p = el("div", "pill"); p.dir = "ltr"; const b = el("b"); heb(b, kopf); p.appendChild(b); p.appendChild(document.createElement("br")); heb(p, text); return p; }
 
 function zeige(r) {
   const out = $("out"); out.textContent = "";
@@ -130,11 +142,11 @@ function zeige(r) {
     const c = card("Rückfrage"); c.appendChild(el("p", "", r.bedeutung || "Dazu kann ich keine Erklärung erstellen.")); out.appendChild(c); return;
   }
   let nr = 0;
-  const cb = card("Bedeutung im Chassidismus"); cb.appendChild(el("p", "", r.bedeutung || "")); out.appendChild(cb);
+  const cb = card("Bedeutung im Chassidismus"); cb.appendChild(heb(el("p"), r.bedeutung)); out.appendChild(cb);
 
   const c1 = card(`${++nr} · Die Buchstaben`);
   c1.appendChild(buchstabenGrafik(r.begriff_hebraeisch, r.rollen));
-  if (r.merksatz) c1.appendChild(el("div", "merk", r.merksatz));
+  if (r.merksatz) c1.appendChild(heb(el("div", "merk"), r.merksatz));
   out.appendChild(c1);
 
   if (r.kontrast && r.kontrast.links && r.kontrast.rechts) {
@@ -149,11 +161,11 @@ function zeige(r) {
   c3.appendChild(row); out.appendChild(c3);
 
   const c4 = card(`${++nr} · PaReDeS in vier Zeilen`);
-  const row2 = el("div", "row");
+  const row2 = el("div", "row zwei");
   [["Pschat", "pschat"], ["Remes", "remes"], ["Drasch", "drasch"], ["Sod", "sod"]].forEach(([n, k]) => row2.appendChild(pille(n, r.pardes[k])));
   c4.appendChild(row2); out.appendChild(c4);
 
-  if (r.unsicher) out.appendChild(el("div", "hinweis", "Bitte prüfen: " + r.unsicher));
+  if (r.unsicher) out.appendChild(heb(el("div", "hinweis"), "Bitte prüfen: " + r.unsicher));
 }
 
 $("f").addEventListener("submit", async (e) => {
