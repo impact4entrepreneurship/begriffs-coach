@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Begriffs-Coach – Bibel hebräisch verstehen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f1fa;--ink:#2a1840;--plum:#5b2a86;--rose:#c0508a;--soft:#e4d6f0;--muted:#6d5a82;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1128;--ink:#f1e8fa;--plum:#b98be6;--rose:#e58bb8;--soft:#33224a;--muted:#b3a2c6;--card:#271a3a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;padding:32px 16px 60px;line-height:1.55}
+main{max-width:820px;margin:0 auto}
+h1{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,6vw,2.8rem);margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 24px}
+form{display:grid;gap:12px;grid-template-columns:2fr 1fr auto;align-items:end;background:var(--soft);padding:18px;border-radius:18px;margin-bottom:24px}
+@media(max-width:640px){form{grid-template-columns:1fr}}
+label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
+input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--muted);background:var(--card);color:var(--ink);font:inherit;font-size:1.05rem}
+button{padding:12px 22px;border:0;border-radius:10px;background:var(--plum);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.card{background:var(--soft);border-radius:18px;padding:20px;margin-bottom:18px}
+.card h2{font-family:'Playfair Display',serif;margin:0 0 10px;font-size:1.2rem;color:var(--plum)}
+.kopf{text-align:center;padding:10px 0 22px}
+.heb{font-family:'Frank Ruhl Libre','Times New Roman',serif;font-size:clamp(3rem,14vw,5.5rem);color:var(--plum);line-height:1.1;direction:rtl}
+.laut{font-family:'Playfair Display',serif;font-size:1.3rem}
+.rechnung{font-family:'Frank Ruhl Libre',serif;font-size:1.25rem;background:var(--card);border-radius:10px;padding:10px 14px;margin-bottom:10px;direction:ltr}
+ul{margin:0;padding-left:20px}
+.ebene{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.ebene b{color:var(--plum)}
+.merk{text-align:center;font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--plum);padding:6px 0 0}
+.bild{background:var(--card);border-radius:12px;padding:8px}
+.bild img{width:100%;height:auto;display:block}
+.hinweis{font-size:.9rem;color:var(--muted);background:var(--card);border-radius:12px;padding:12px 14px}
+.fehler{background:#fde7ee;color:#7a1237;border-radius:12px;padding:12px 14px;margin-bottom:18px}
+.laedt{text-align:center;color:var(--muted);padding:30px 0}
+.fuss{font-size:.8rem;color:var(--muted);margin-top:30px;text-align:center}
+[hidden]{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>Begriffs-Coach</h1>
+<p class="sub">Kurs „Bibel hebräisch verstehen“ · Gib einen Begriff ein und lerne ihn nach PaReDeS und Chabad-Chassidismus.</p>
+
+<form id="f">
+  <div><label for="b">Begriff (z. B. Emet)</label><input id="b" maxlength="40" required autocomplete="off"></div>
+  <div><label for="c">Zugangscode</label><input id="c" type="password" required autocomplete="off"></div>
+  <button id="go" type="submit">Erklären</button>
+</form>
+
+<div id="fehler" class="fehler" hidden></div>
+<div id="laedt" class="laedt" hidden>Dein Lern-Coach schreibt gerade … das dauert etwa eine halbe Minute.</div>
+<div id="out"></div>
+
+<p class="fuss">Es wird nichts gespeichert. Die Erklärung wird von einer KI erstellt – Quellen bitte im Kursmaterial gegenprüfen.</p>
+</main>
+
+<script>
+const API = "https://begriffs-coach.tora-frage.workers.dev";
+const $ = (id) => document.getElementById(id);
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function card(titel) { const c = el("div", "card"); c.appendChild(el("h2", "", titel)); return c; }
+
+function zeige(r) {
+  const out = $("out"); out.textContent = "";
+  const kopf = el("div", "card kopf");
+  kopf.appendChild(el("div", "heb", r.begriff_hebraeisch || ""));
+  kopf.appendChild(el("div", "laut", [r.begriff_lautschrift, r.uebersetzung].filter(Boolean).join(" · ")));
+  out.appendChild(kopf);
+
+  if (!r.gematria && !r.pardes) { const c = card("Rückfrage"); c.appendChild(el("p", "", r.bedeutung || "")); out.appendChild(c); return; }
+
+  const c1 = card("1 · Bedeutung im Chassidismus"); c1.appendChild(el("p", "", r.bedeutung || "")); out.appendChild(c1);
+
+  const c2 = card("2 · Zahlenwert (Gematria)");
+  if (r.gematria) {
+    c2.appendChild(el("div", "rechnung", r.gematria.rechnung || ""));
+    const ul = el("ul"); (r.gematria.zusammenhaenge || []).forEach((z) => ul.appendChild(el("li", "", z))); c2.appendChild(ul);
+  }
+  out.appendChild(c2);
+
+  const c3 = card("3 · Auslegung nach PaReDeS");
+  [["Pschat – wörtlich", "pschat"], ["Remes – Andeutung", "remes"], ["Drasch – Auslegung", "drasch"], ["Sod – Geheimnis", "sod"]].forEach(([n, k]) => {
+    const d = el("div", "ebene"); d.appendChild(el("b", "", n)); d.appendChild(el("div", "", (r.pardes || {})[k] || "")); c3.appendChild(d);
+  });
+  out.appendChild(c3);
+
+  const c4 = card("4 · Visualisierung");
+  if (r.svg && /<svg[\s>]/i.test(r.svg)) {
+    const b = el("div", "bild"); const img = document.createElement("img");
+    img.alt = "Skizze zum Begriff";
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(r.svg); // als Bild: Skripte laufen nicht
+    b.appendChild(img); c4.appendChild(b);
+  }
+  if (r.merksatz) c4.appendChild(el("div", "merk", r.merksatz));
+  out.appendChild(c4);
+
+  if (r.unsicher) { const h = el("div", "hinweis", "Bitte prüfen: " + r.unsicher); out.appendChild(h); }
+}
+
+$("f").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("fehler").hidden = true; $("out").textContent = ""; $("laedt").hidden = false; $("go").disabled = true;
+  try {
+    const res = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ begriff: $("b").value, code: $("c").value }) });
+    const d = await res.json();
+    if (!res.ok) throw new Error(d.fehler || "Etwas ist schiefgelaufen.");
+    zeige(d.ergebnis);
+  } catch (err) {
+    $("fehler").textContent = err.message; $("fehler").hidden = false;
+  } finally { $("laedt").hidden = true; $("go").disabled = false; }
+});
+</script>
+</body>
+</html>
