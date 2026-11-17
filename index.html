@@ -4,34 +4,31 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Begriffs-Coach – Bibel hebräisch verstehen</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&family=Frank+Ruhl+Libre:wght@500;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f6f1fa;--ink:#2a1840;--plum:#5b2a86;--rose:#c0508a;--soft:#e4d6f0;--muted:#6d5a82;--card:#fff}
 @media (prefers-color-scheme:dark){:root{--bg:#1b1128;--ink:#f1e8fa;--plum:#b98be6;--rose:#e58bb8;--soft:#33224a;--muted:#b3a2c6;--card:#271a3a}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;padding:32px 16px 60px;line-height:1.55}
-main{max-width:820px;margin:0 auto}
-h1{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,6vw,2.8rem);margin:0 0 4px}
-.sub{color:var(--muted);margin:0 0 24px}
+main{max-width:860px;margin:0 auto}
+h1{font-family:'Playfair Display',serif;font-size:clamp(2rem,6vw,3.2rem);margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 28px}
 form{display:grid;gap:12px;grid-template-columns:2fr 1fr auto;align-items:end;background:var(--soft);padding:18px;border-radius:18px;margin-bottom:24px}
 @media(max-width:640px){form{grid-template-columns:1fr}}
 label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:4px}
 input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--muted);background:var(--card);color:var(--ink);font:inherit;font-size:1.05rem}
 button{padding:12px 22px;border:0;border-radius:10px;background:var(--plum);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 button:disabled{opacity:.6;cursor:wait}
-.card{background:var(--soft);border-radius:18px;padding:20px;margin-bottom:18px}
-.card h2{font-family:'Playfair Display',serif;margin:0 0 10px;font-size:1.2rem;color:var(--plum)}
-.kopf{text-align:center;padding:10px 0 22px}
-.heb{font-family:'Frank Ruhl Libre','Times New Roman',serif;font-size:clamp(3rem,14vw,5.5rem);color:var(--plum);line-height:1.1;direction:rtl}
-.laut{font-family:'Playfair Display',serif;font-size:1.3rem}
-.rechnung{font-family:'Frank Ruhl Libre',serif;font-size:1.25rem;background:var(--card);border-radius:10px;padding:10px 14px;margin-bottom:10px;direction:ltr}
-ul{margin:0;padding-left:20px}
-.ebene{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:10px}
-.ebene b{color:var(--plum)}
-.merk{text-align:center;font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--plum);padding:6px 0 0}
-.bild{background:var(--card);border-radius:12px;padding:8px}
-.bild img{width:100%;height:auto;display:block}
-.hinweis{font-size:.9rem;color:var(--muted);background:var(--card);border-radius:12px;padding:12px 14px}
+.card{background:var(--soft);border-radius:18px;padding:20px;margin-bottom:20px}
+.card h2{font-family:'Playfair Display',serif;margin:0 0 10px;font-size:1.25rem;color:var(--plum)}
+.card p{margin:0}
+svg{width:100%;height:auto;display:block}
+.heb{font-family:'Frank Ruhl Libre',serif;font-weight:700}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.pill{background:var(--bg);border-radius:12px;padding:12px 14px;font-size:.95rem}
+.pill b{color:var(--plum)}
+.merk{text-align:center;font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--plum);padding:8px 0}
+.hinweis{font-size:.9rem;color:var(--muted);background:var(--soft);border-radius:12px;padding:12px 14px;margin-bottom:20px}
 .fehler{background:#fde7ee;color:#7a1237;border-radius:12px;padding:12px 14px;margin-bottom:18px}
 .laedt{text-align:center;color:var(--muted);padding:30px 0}
 .fuss{font-size:.8rem;color:var(--muted);margin-top:30px;text-align:center}
@@ -59,50 +56,104 @@ ul{margin:0;padding-left:20px}
 <script>
 const API = "https://begriffs-coach.tora-frage.workers.dev";
 const $ = (id) => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
 
-function el(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
+// Buchstaben: Name und Zahlenwert (Standard-Gematria, Endbuchstaben zählen normal)
+const BUCH = {
+ "א":["Aleph",1],"ב":["Bet",2],"ג":["Gimel",3],"ד":["Dalet",4],"ה":["He",5],"ו":["Waw",6],"ז":["Sajin",7],"ח":["Chet",8],"ט":["Tet",9],
+ "י":["Jud",10],"כ":["Kaf",20],"ך":["Kaf",20],"ל":["Lamed",30],"מ":["Mem",40],"ם":["Mem",40],"נ":["Nun",50],"ן":["Nun",50],"ס":["Samech",60],
+ "ע":["Ajin",70],"פ":["Pe",80],"ף":["Pe",80],"צ":["Zade",90],"ץ":["Zade",90],"ק":["Kuf",100],"ר":["Resch",200],"ש":["Schin",300],"ת":["Taw",400]
+};
+function buchstaben(w) { return [...String(w || "")].filter((c) => BUCH[c]); }
+function wert(w) { return buchstaben(w).reduce((s, c) => s + BUCH[c][1], 0); }
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+function card(titel) { const c = el("div", "card"); c.appendChild(el("h2", "", titel)); return c; }
+function s(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
   if (text !== undefined) e.textContent = text;
   return e;
 }
-function card(titel) { const c = el("div", "card"); c.appendChild(el("h2", "", titel)); return c; }
+function kuerze(t, n) { t = String(t || ""); return t.length > n ? t.slice(0, n - 1) + "…" : t; }
+function umbruch(t, n) {
+  const zeilen = []; let z = "";
+  String(t || "").split(/\s+/).forEach((w) => { if ((z + " " + w).trim().length > n) { zeilen.push(z); z = w; } else z = (z + " " + w).trim(); });
+  if (z) zeilen.push(z); return zeilen.slice(0, 3);
+}
+
+// Grafik 1: Buchstaben auf einer Linie, von rechts nach links, mit Name, Wert und Stichwort
+function buchstabenGrafik(wort, rollen) {
+  const L = buchstaben(wort), n = L.length;
+  const svg = s("svg", { viewBox: "0 0 800 290", role: "img", "aria-label": "Die Buchstaben des Begriffs mit ihrem Zahlenwert" });
+  svg.appendChild(s("text", { x: 400, y: 28, "text-anchor": "middle", "font-family": "Inter", "font-size": 15, fill: "var(--muted)" }, "von rechts nach links gelesen"));
+  svg.appendChild(s("path", { d: "M600 42 H200", stroke: "var(--rose)", "stroke-width": 3, fill: "none" }));
+  svg.appendChild(s("path", { d: "M212 34 L198 42 L212 50", stroke: "var(--rose)", "stroke-width": 3, fill: "none" }));
+  svg.appendChild(s("line", { x1: 60, y1: 215, x2: 740, y2: 215, stroke: "var(--plum)", "stroke-width": 5, "stroke-linecap": "round" }));
+  const slot = 680 / n, fs = Math.min(120, slot * 0.8), lf = Math.max(11, Math.min(16, slot / 6.5));
+  L.forEach((c, i) => {
+    const x = 740 - slot * (i + 0.5);
+    svg.appendChild(s("text", { x, y: 190, "text-anchor": "middle", class: "heb", "font-size": fs, fill: "var(--plum)" }, c));
+    svg.appendChild(s("text", { x, y: 241, "text-anchor": "middle", "font-family": "Inter", "font-size": lf, "font-weight": 600, fill: "var(--ink)" }, `${BUCH[c][0]} · ${BUCH[c][1]}`));
+    const r = (rollen || [])[i];
+    if (r) svg.appendChild(s("text", { x, y: 264, "text-anchor": "middle", "font-family": "Inter", "font-size": lf - 1, fill: "var(--muted)" }, kuerze(r, Math.floor(slot / (lf * 0.55)))));
+  });
+  return svg;
+}
+
+// Grafik 2: Gegenüberstellung zweier Begriffe
+function kontrastGrafik(k) {
+  const svg = s("svg", { viewBox: "0 0 800 330", role: "img", "aria-label": "Gegenüberstellung" });
+  const seiten = [[k.links || {}, 220, "var(--plum)"], [k.rechts || {}, 580, "var(--rose)"]];
+  seiten.forEach(([d, x, farbe]) => {
+    const w = wert(d.hebraeisch);
+    svg.appendChild(s("text", { x, y: 120, "text-anchor": "middle", class: "heb", "font-size": 96, fill: farbe }, buchstaben(d.hebraeisch).join("")));
+    svg.appendChild(s("rect", { x: x - 130, y: 140, width: 260, height: 12, rx: 6, fill: farbe }));
+    svg.appendChild(s("text", { x, y: 182, "text-anchor": "middle", "font-family": "Inter", "font-size": 18, "font-weight": 600, fill: farbe }, kuerze(`${d.label || ""}${w ? " · " + w : ""}`, 34)));
+    umbruch(d.text, 36).forEach((z, i) => svg.appendChild(s("text", { x, y: 208 + i * 20, "text-anchor": "middle", "font-family": "Inter", "font-size": 15, fill: "var(--ink)" }, z)));
+  });
+  svg.appendChild(s("text", { x: 400, y: 120, "text-anchor": "middle", "font-family": "Playfair Display", "font-size": 28, fill: "var(--muted)" }, "↔"));
+  if (k.fussnote) svg.appendChild(s("text", { x: 400, y: 312, "text-anchor": "middle", "font-family": "Inter", "font-size": 14, fill: "var(--muted)" }, kuerze(k.fussnote, 110)));
+  return svg;
+}
+
+function pille(kopf, text) { const p = el("div", "pill"); p.appendChild(el("b", "", kopf)); p.appendChild(document.createElement("br")); p.appendChild(document.createTextNode(text || "")); return p; }
 
 function zeige(r) {
   const out = $("out"); out.textContent = "";
-  const kopf = el("div", "card kopf");
-  kopf.appendChild(el("div", "heb", r.begriff_hebraeisch || ""));
-  kopf.appendChild(el("div", "laut", [r.begriff_lautschrift, r.uebersetzung].filter(Boolean).join(" · ")));
-  out.appendChild(kopf);
+  const h = el("h1"); const heb = el("span", "heb", buchstaben(r.begriff_hebraeisch).join("")); h.appendChild(heb);
+  h.appendChild(document.createTextNode(" · " + (r.begriff_lautschrift || "")));
+  out.appendChild(h);
+  out.appendChild(el("p", "sub", [r.uebersetzung, r.kernsatz].filter(Boolean).join(" – ")));
 
-  if (!r.gematria && !r.pardes) { const c = card("Rückfrage"); c.appendChild(el("p", "", r.bedeutung || "")); out.appendChild(c); return; }
-
-  const c1 = card("1 · Bedeutung im Chassidismus"); c1.appendChild(el("p", "", r.bedeutung || "")); out.appendChild(c1);
-
-  const c2 = card("2 · Zahlenwert (Gematria)");
-  if (r.gematria) {
-    c2.appendChild(el("div", "rechnung", r.gematria.rechnung || ""));
-    const ul = el("ul"); (r.gematria.zusammenhaenge || []).forEach((z) => ul.appendChild(el("li", "", z))); c2.appendChild(ul);
+  if (!buchstaben(r.begriff_hebraeisch).length || !r.pardes) {
+    const c = card("Rückfrage"); c.appendChild(el("p", "", r.bedeutung || "Dazu kann ich keine Erklärung erstellen.")); out.appendChild(c); return;
   }
-  out.appendChild(c2);
+  let nr = 0;
+  const cb = card("Bedeutung im Chassidismus"); cb.appendChild(el("p", "", r.bedeutung || "")); out.appendChild(cb);
 
-  const c3 = card("3 · Auslegung nach PaReDeS");
-  [["Pschat – wörtlich", "pschat"], ["Remes – Andeutung", "remes"], ["Drasch – Auslegung", "drasch"], ["Sod – Geheimnis", "sod"]].forEach(([n, k]) => {
-    const d = el("div", "ebene"); d.appendChild(el("b", "", n)); d.appendChild(el("div", "", (r.pardes || {})[k] || "")); c3.appendChild(d);
-  });
-  out.appendChild(c3);
+  const c1 = card(`${++nr} · Die Buchstaben`);
+  c1.appendChild(buchstabenGrafik(r.begriff_hebraeisch, r.rollen));
+  if (r.merksatz) c1.appendChild(el("div", "merk", r.merksatz));
+  out.appendChild(c1);
 
-  const c4 = card("4 · Visualisierung");
-  if (r.svg && /<svg[\s>]/i.test(r.svg)) {
-    const b = el("div", "bild"); const img = document.createElement("img");
-    img.alt = "Skizze zum Begriff";
-    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(r.svg); // als Bild: Skripte laufen nicht
-    b.appendChild(img); c4.appendChild(b);
+  if (r.kontrast && r.kontrast.links && r.kontrast.rechts) {
+    const c2 = card(`${++nr} · ${r.kontrast.titel || "Gegenüberstellung"}`); c2.appendChild(kontrastGrafik(r.kontrast)); out.appendChild(c2);
   }
-  if (r.merksatz) c4.appendChild(el("div", "merk", r.merksatz));
-  out.appendChild(c4);
 
-  if (r.unsicher) { const h = el("div", "hinweis", "Bitte prüfen: " + r.unsicher); out.appendChild(h); }
+  const c3 = card(`${++nr} · Zahlenwert (Gematria)`);
+  const row = el("div", "row");
+  const L = buchstaben(r.begriff_hebraeisch);
+  row.appendChild(pille(`${wert(r.begriff_hebraeisch)}`, L.map((c) => `${c} (${BUCH[c][1]})`).join(" + ") + " = " + wert(r.begriff_hebraeisch)));
+  (r.zahl || []).forEach((z) => row.appendChild(pille(z.kopf || "", z.text)));
+  c3.appendChild(row); out.appendChild(c3);
+
+  const c4 = card(`${++nr} · PaReDeS in vier Zeilen`);
+  const row2 = el("div", "row");
+  [["Pschat", "pschat"], ["Remes", "remes"], ["Drasch", "drasch"], ["Sod", "sod"]].forEach(([n, k]) => row2.appendChild(pille(n, r.pardes[k])));
+  c4.appendChild(row2); out.appendChild(c4);
+
+  if (r.unsicher) out.appendChild(el("div", "hinweis", "Bitte prüfen: " + r.unsicher));
 }
 
 $("f").addEventListener("submit", async (e) => {
