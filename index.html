@@ -133,7 +133,7 @@ function pille(kopf, text) { const p = el("div", "pill"); p.dir = "ltr"; const b
 
 function zeige(r) {
   const out = $("out"); out.textContent = "";
-  const h = el("h1"); const heb = el("span", "heb", buchstaben(r.begriff_hebraeisch).join("")); h.appendChild(heb);
+  const h = el("h1"); const hebWort = el("span", "heb", buchstaben(r.begriff_hebraeisch).join("")); h.appendChild(hebWort);
   h.appendChild(document.createTextNode(" · " + (r.begriff_lautschrift || "")));
   out.appendChild(h);
   out.appendChild(el("p", "sub", [r.uebersetzung, r.kernsatz].filter(Boolean).join(" – ")));
