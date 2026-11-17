@@ -111,7 +111,7 @@ function kontrastGrafik(k) {
   const seiten = [[k.links || {}, 220, "var(--plum)"], [k.rechts || {}, 580, "var(--rose)"]];
   seiten.forEach(([d, x, farbe]) => {
     const w = wert(d.hebraeisch);
-    svg.appendChild(s("text", { x, y: 120, "text-anchor": "middle", class: "heb", "font-size": Math.max(36, Math.min(96, Math.floor(320 / (Math.max(1, buchstaben(d.hebraeisch).length) * 0.62)))), fill: farbe }, buchstaben(d.hebraeisch).join(" ").replace(/ /g, buchstaben(d.hebraeisch).length > 7 ? "" : "")));
+    svg.appendChild(s("text", { x, y: 120, "text-anchor": "middle", class: "heb", "font-size": Math.max(36, Math.min(96, Math.floor(320 / (Math.max(1, buchstaben(d.hebraeisch).length) * 0.62)))), fill: farbe }, String(d.hebraeisch || "").replace(/[^\u05D0-\u05EA ]/g, "").trim()));
     svg.appendChild(s("rect", { x: x - 130, y: 140, width: 260, height: 12, rx: 6, fill: farbe }));
     svg.appendChild(s("text", { x, y: 182, "text-anchor": "middle", "font-family": "Inter", "font-size": 18, "font-weight": 600, fill: farbe }, kuerze(`${d.label || ""}${w ? " · " + w : ""}`, 34)));
     umbruch(d.text, 36).forEach((z, i) => svg.appendChild(s("text", { x, y: 208 + i * 20, "text-anchor": "middle", "font-family": "Inter", "font-size": 15, fill: "var(--ink)" }, z)));
